@@ -116,7 +116,7 @@ def interview():
         question = f"Error generating question: {str(e)}"
         flash(question, 'error')
     
-    return render_template('interview.html', question=question)
+    return render_template('interview/interview.html', question=question)
 
 # Authentication routes
 @app.route('/login', methods=['GET', 'POST'])
