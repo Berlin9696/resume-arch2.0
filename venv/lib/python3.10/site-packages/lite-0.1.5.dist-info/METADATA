@@ -1,0 +1,10 @@
+Metadata-Version: 2.1
+Name: lite
+Version: 0.1.5
+Summary: Analouge Light.js on Python
+Author: mihett05
+Author-email: mihett05@yandex.ru
+Requires-Python: >=3.7,<4.0
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.7
+Requires-Dist: aiohttp (>=3.5,<4.0)
