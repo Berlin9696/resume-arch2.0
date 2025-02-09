@@ -9,6 +9,8 @@ from dotenv import load_dotenv
 from flask_mail import Mail
 import os
 from datetime import datetime
+from email_sender import send_email
+from token_utils import generate_token
 
 # Load environment variables
 load_dotenv()
