@@ -6,9 +6,14 @@ from models import db, User, Resume
 from utils.s3_helper import upload_to_s3
 from utils.ai_helper import analyze_resume, generate_interview_question, evaluate_star_response
 from dotenv import load_dotenv
+from flask_mail import Mail
 import os
+import token_utils
+from token_utils import confirm_token, generate_token
 from datetime import datetime
-
+from email_sender import send_email
+#from config import SECURITY_PASSWORD_SALT
+#from config import SECRET_KEY
 # Load environment variables
 load_dotenv()
 
@@ -20,16 +25,35 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['AWS_ACCESS_KEY_ID'] = os.getenv('AWS_ACCESS_KEY_ID')
 app.config['AWS_SECRET_ACCESS_KEY'] = os.getenv('AWS_SECRET_ACCESS_KEY')
 app.config['S3_BUCKET_NAME'] = os.getenv('S3_BUCKET_NAME')
+##app.config['MAIL_USERNAME'] = os.getenv("EMAIL_USER")
+##app.config['MAIL_PASSWORD'] = os.getenv("EMAIL_PASSWORD")
+app.config["SECURITY_PASSWORD_SALT"]= os.getenv('SECURITY_PASSWORD_SALT')
+app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_DEFAULT_SENDER')
+app.config['MAIL_DEBUG'] = True
+app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
+app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
+app.config['MAIL_PORT'] = os.getenv('MAIL_PORT')
+app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER')
+
+app.debug = True
 
 # Initialize database & Flask extensions
 db.init_app(app)
 migrate = Migrate(app, db)  # Initialize Flask-Migrate
+mail = Mail(app) #Initialize Flask-Mail
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'  # Redirect to login if user isn't authenticated
-
+    
 @login_manager.user_loader
 def load_user(user_id):
-    return db.session.get(User, int(user_id))
+    try:
+        user_id = int(user_id)
+    except ValueError:
+        return print({'error': 'Invalid user ID'}), 400
+    if(user_id):
+        return db.session.get(User, int(user_id))
+    else:
+        return 0
 
 # Create database tables if they don't exist
 with app.app_context():
@@ -116,7 +140,7 @@ def interview():
         question = f"Error generating question: {str(e)}"
         flash(question, 'error')
     
-    return render_template('interview.html', question=question)
+    return render_template('interview/interview.html', question=question)
 
 # Authentication routes
 @app.route('/login', methods=['GET', 'POST'])
@@ -133,6 +157,10 @@ def login():
         flash('Invalid email or password', 'error')
     return render_template('auth/login.html')
 
+@app.route('/inactive')
+def inactive():
+    return render_template('auth/inactive.html')  # Ensure correct path within 'templates/'
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -146,9 +174,22 @@ def register():
         new_user = User(email=email, password=password)
         db.session.add(new_user)
         db.session.commit()
+        token = generate_token(new_user.email)
+        print("token success")
+        confirm_url = url_for("home", token=token, _external=True)
+        print("confirm_url success")
+        html = render_template("auth/confirm.html", confirm_url=confirm_url)
+        print("html success")
+        subject = "Please confirm your email"
+        send_email(new_user.email, subject, html)
+        print("email success")
+        login_user(new_user)
+
+        flash("A confirmation email has been sent via email.", "success")
+        return redirect(url_for('inactive'))
         
-        flash('Registration successful! Please login', 'success')
-        return redirect(url_for('login'))
+        ##flash('Registration successful! Please login', 'success')
+        return render_template('auth/confirm.html')
     
     return render_template('auth/register.html')
 
