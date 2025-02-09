@@ -8,11 +8,8 @@ from utils.ai_helper import analyze_resume, generate_interview_question, evaluat
 from dotenv import load_dotenv
 from flask_mail import Mail
 import os
-from token_utils import confirm_token, generate_token
 from datetime import datetime
-from email_sender import send_email
-from config import SECURITY_PASSWORD_SALT
-from config import SECRET_KEY
+
 # Load environment variables
 load_dotenv()
 
