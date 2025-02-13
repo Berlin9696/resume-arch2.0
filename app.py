@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
+#from flask_migrate import Migrate
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from models import db, User, Resume
 from utils.s3_helper import upload_to_s3
@@ -10,7 +10,7 @@ from flask_mail import Mail
 import os
 from datetime import datetime
 from email_sender import send_email
-from token_utils import generate_token
+from token_utils import generate_timed_token, confirm_timed_token
 
 # Load environment variables
 load_dotenv()
@@ -23,21 +23,20 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['AWS_ACCESS_KEY_ID'] = os.getenv('AWS_ACCESS_KEY_ID')
 app.config['AWS_SECRET_ACCESS_KEY'] = os.getenv('AWS_SECRET_ACCESS_KEY')
 app.config['S3_BUCKET_NAME'] = os.getenv('S3_BUCKET_NAME')
-##app.config['MAIL_USERNAME'] = os.getenv("EMAIL_USER")
-##app.config['MAIL_PASSWORD'] = os.getenv("EMAIL_PASSWORD")
-app.config["SECURITY_PASSWORD_SALT"]= os.getenv('SECURITY_PASSWORD_SALT')
-app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_DEFAULT_SENDER')
 app.config['MAIL_DEBUG'] = True
-app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
-app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
-app.config['MAIL_PORT'] = os.getenv('MAIL_PORT')
-app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER')
+app.config["MAIL_SERVER"] = os.getenv("MAIL_SERVER")
+app.config["MAIL_PORT"] = int(os.getenv("MAIL_PORT"))  # Convert to int
+app.config["MAIL_USE_TLS"] = os.getenv("MAIL_USE_TLS").lower() in ["true", "1"]
+app.config["MAIL_USE_SSL"] = os.getenv("MAIL_USE_SSL").lower() in ["true", "1"]
+app.config["MAIL_USERNAME"] = os.getenv("MAIL_USERNAME")
+app.config["MAIL_PASSWORD"] = os.getenv("MAIL_PASSWORD")
+app.config["MAIL_DEFAULT_SENDER"] = os.getenv("MAIL_DEFAULT_SENDER")
 
 app.debug = True
 
 # Initialize database & Flask extensions
 db.init_app(app)
-migrate = Migrate(app, db)  # Initialize Flask-Migrate
+#migrate = Migrate(app, db)  # Initialize Flask-Migrate
 mail = Mail(app) #Initialize Flask-Mail
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'  # Redirect to login if user isn't authenticated
@@ -72,49 +71,78 @@ def dashboard():
 @login_required
 def analyze_resume_route():
     if request.method == 'POST':
-        if 'resume' not in request.files:
-            flash('No file selected', 'error')
-            return redirect(request.url)
-            
-        resume_file = request.files['resume']
+        resume_file = request.files.get('resume')
         job_desc = request.form.get('job_description', '')
+        region = request.form.get('region', '')
+        country = request.form.get('country', '')
 
-        if resume_file.filename == '':
+        if not resume_file or resume_file.filename == '':
             flash('No selected file', 'error')
+            return redirect(request.url)
+
+        if not region or not country:
+            flash('Please select both a region and a country.', 'error')
             return redirect(request.url)
 
         try:
             # Read file content
-            if resume_file.filename.endswith('.docx'):
-                from docx import Document
-                doc = Document(resume_file)
-                resume_text = '\n'.join([para.text for para in doc.paragraphs])
-            else:
-                resume_text = resume_file.read().decode('utf-8')
-            
+            resume_text = resume_file.read().decode('utf-8')
+
             # Upload to S3
-            s3_path = upload_to_s3(resume_file, current_user.id)
-            
+            s3_path = upload_to_s3(resume_file, current_user.id, region, country)
+
             # AI Analysis
             analysis = analyze_resume(resume_text, job_desc)
-            
+
             # Save to database
-            new_resume = Resume(
-                user_id=current_user.id,
-                s3_path=s3_path,
-                analysis=analysis,
-                created_at=datetime.utcnow()
-            )
+            new_resume = Resume(user_id=current_user.id, s3_path=s3_path, analysis=analysis, created_at=datetime.utcnow())
             db.session.add(new_resume)
             db.session.commit()
-            
+
             return render_template('resume/analysis.html', analysis=analysis)
-            
+
         except Exception as e:
             flash(f'Error processing file: {str(e)}', 'error')
             return redirect(url_for('analyze_resume_route'))
-    
+
     return render_template('resume/analyze.html')
+
+@app.route('/forgot-password', methods=['GET', 'POST'])
+def forgot_password():
+    if request.method == 'POST':
+        email = request.form.get('email')
+        user = User.query.filter_by(email=email).first()
+
+        if user:
+            token = generate_timed_token(user.email)
+            reset_url = url_for('reset_password', token=token, _external=True)
+            html = render_template("auth/reset_password_email.html", reset_url=reset_url)
+            send_email(user.email, "Password Reset Request", html)
+
+        flash("If your email exists, you will receive a password reset link.", "success")
+        return redirect(url_for('login'))
+    
+    return render_template('auth/forgot_password.html')
+
+@app.route('/reset-password/<token>', methods=['GET', 'POST'])
+def reset_password(token):
+    email = confirm_timed_token(token)
+
+    if not email:
+        flash('Invalid or expired token', 'error')
+        return redirect(url_for('login'))
+
+    if request.method == 'POST':
+        new_password = request.form.get('password')
+        user = User.query.filter_by(email=email).first()
+
+        if user:
+            user.password = new_password
+            db.session.commit()
+            flash('Password reset successful. Please log in.', 'success')
+            return redirect(url_for('login'))
+
+    return render_template('auth/reset_password.html', token=token)
 
 @app.route('/interview', methods=['GET', 'POST'])
 @login_required
@@ -172,7 +200,7 @@ def register():
         new_user = User(email=email, password=password)
         db.session.add(new_user)
         db.session.commit()
-        token = generate_token(new_user.email)
+        token = generate_timed_token(new_user.email)
         print("token success")
         confirm_url = url_for("home", token=token, _external=True)
         print("confirm_url success")
@@ -208,4 +236,4 @@ def internal_server_error(e):
 
 # Run Flask app
 if __name__ == '__main__':
-    app.run(debug=False)
+    app.run(debug=True)

@@ -1,10 +1,8 @@
 {% extends "base.html" %}
-
 {% block content %}
 <div class="max-w-4xl mx-auto py-8">
     <h1 class="text-2xl font-bold mb-6">Analyze Resume</h1>
 
-    <!-- Flash Messages -->
     {% with messages = get_flashed_messages(with_categories=True) %}
         {% if messages %}
             {% for category, message in messages %}
@@ -15,45 +13,62 @@
         {% endif %}
     {% endwith %}
 
-    <!-- Resume Upload Form -->
-    <form method="POST" enctype="multipart/form-data" class="bg-white p-6 rounded-lg shadow-md">
+    <form action="{{ url_for('analyze_resume_route') }}" method="POST" enctype="multipart/form-data" class="bg-white p-6 rounded-lg shadow-md">
+        <div class="mb-4">
+            <label class="block text-gray-700 font-semibold">Select Your Region</label>
+            <select id="region" name="region" required class="w-full px-3 py-2 border rounded" onchange="updateCountries()">
+                <option value="">-- Select a Region --</option>
+                <option value="AMER">America</option>
+                <option value="APAC">Asia-Pacific</option>
+                <option value="EMEA">Europe, Middle East & Africa</option>
+            </select>
+        </div>
+
+        <div class="mb-4">
+            <label class="block text-gray-700 font-semibold">Select Your Country</label>
+            <select id="country" name="country" required class="w-full px-3 py-2 border rounded" disabled>
+                <option value="">-- Select a Country --</option>
+            </select>
+        </div>
+
         <div class="mb-4">
             <label class="block text-gray-700 font-semibold">Upload Resume (TXT or DOCX)</label>
             <input type="file" name="resume" required class="w-full px-3 py-2 border rounded">
         </div>
+
         <div class="mb-4">
             <label class="block text-gray-700 font-semibold">Job Description</label>
             <textarea name="job_description" rows="4" required class="w-full px-3 py-2 border rounded"></textarea>
         </div>
+
         <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-            Analyze
+            Analyze Resume
         </button>
     </form>
-
-    <!-- Display Analysis Results -->
-    {% if analysis %}
-        <div class="mt-6 p-6 bg-gray-100 rounded-lg shadow">
-            <h2 class="text-xl font-bold mb-4">Analysis Results</h2>
-            <p class="mb-2"><strong>Match Percentage:</strong> {{ analysis.match_percentage }}%</p>
-            <p class="mb-2"><strong>Key Strengths:</strong></p>
-            <ul class="list-disc ml-6">
-                {% for strength in analysis.strengths %}
-                    <li>{{ strength }}</li>
-                {% endfor %}
-            </ul>
-            <p class="mt-4"><strong>Improvement Suggestions:</strong></p>
-            <ul class="list-disc ml-6">
-                {% for suggestion in analysis.improvements %}
-                    <li>{{ suggestion }}</li>
-                {% endfor %}
-            </ul>
-            <p class="mt-4"><strong>Missing Keywords:</strong></p>
-            <ul class="list-disc ml-6">
-                {% for keyword in analysis.missing_keywords %}
-                    <li>{{ keyword }}</li>
-                {% endfor %}
-            </ul>
-        </div>
-    {% endif %}
 </div>
+
+<script>
+    const countryLists = {
+        "AMER": ["United States of America", "Canada", "Mexico", "Brazil", "Argentina"],
+        "APAC": ["Australia", "China", "India", "Japan", "South Korea"],
+        "EMEA": ["United Kingdom", "Germany", "France", "Egypt", "South Africa"]
+    };
+
+    function updateCountries() {
+        const region = document.getElementById("region").value;
+        const countrySelect = document.getElementById("country");
+
+        countrySelect.innerHTML = '<option value="">-- Select a Country --</option>';
+        countrySelect.disabled = !region;
+
+        if (region in countryLists) {
+            countryLists[region].forEach(country => {
+                const option = document.createElement("option");
+                option.value = country;
+                option.textContent = country;
+                countrySelect.appendChild(option);
+            });
+        }
+    }
+</script>
 {% endblock %}
