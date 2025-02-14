@@ -91,7 +91,7 @@ def analyze_resume_route():
             # Upload to S3
             s3_path = upload_to_s3(resume_file, current_user.id, region, country)
 
-            # AI Analysis
+            # AI Analysis (Updated)
             analysis = analyze_resume(resume_text, job_desc)
 
             # Save to database
