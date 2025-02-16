@@ -2,11 +2,20 @@
 {% block content %}
 <div class="max-w-4xl mx-auto py-8">
     <h1 class="text-2xl font-bold mb-6">Analysis Results</h1>
+
     <div class="bg-white p-6 rounded-lg shadow-md">
-        <pre class="whitespace-pre-wrap font-sans">{{ analysis }}</pre>
+        <div class="max-h-96 overflow-y-auto p-4 border rounded">
+            <pre class="whitespace-pre-wrap font-sans">{{ analysis }}</pre>
+        </div>
     </div>
-    <a href="/dashboard" class="mt-4 inline-block bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-        Back to Dashboard
-    </a>
+
+    <div class="mt-4 flex space-x-4">
+        <a href="{{ url_for('user_history') }}" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+            View Upload History
+        </a>
+        <a href="/dashboard" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
+            Back to Dashboard
+        </a>
+    </div>
 </div>
 {% endblock %}

@@ -1,24 +1,38 @@
+# Standard Library Imports
+import os
+from datetime import datetime, timezone
+
+# Flask & Extensions
 from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
-#from flask_migrate import Migrate
+from flask_migrate import Migrate
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
-from models import db, User, Resume
-from utils.s3_helper import upload_to_s3
-from utils.ai_helper import analyze_resume, generate_interview_question, evaluate_star_response
-from dotenv import load_dotenv
 from flask_mail import Mail
-import os
-from datetime import datetime
+from dotenv import load_dotenv
+
+# Models (Database Tables)
+from models import db, User, Resume
+
+# Utility Functions
+from utils.s3_helper import upload_to_s3, generate_presigned_url
+from utils.ai_helper import analyze_resume, generate_interview_question, evaluate_star_response
 from email_sender import send_email
 from token_utils import generate_timed_token, confirm_timed_token
+
+# File Handling
+import docx
+import PyPDF2
+import logging
 
 # Load environment variables
 load_dotenv()
 
+DATABASE_URL = os.getenv("DATABASE_URL")
+
 # Initialize Flask app
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///resumes.db'
+app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URL
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['AWS_ACCESS_KEY_ID'] = os.getenv('AWS_ACCESS_KEY_ID')
 app.config['AWS_SECRET_ACCESS_KEY'] = os.getenv('AWS_SECRET_ACCESS_KEY')
@@ -36,21 +50,18 @@ app.debug = True
 
 # Initialize database & Flask extensions
 db.init_app(app)
-#migrate = Migrate(app, db)  # Initialize Flask-Migrate
-mail = Mail(app) #Initialize Flask-Mail
+migrate = Migrate(app, db)  # Initialize Flask-Migrate
+mail = Mail(app)  # Initialize Flask-Mail
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'  # Redirect to login if user isn't authenticated
-    
+
 @login_manager.user_loader
 def load_user(user_id):
+    """ Load user session for Flask-Login """
     try:
-        user_id = int(user_id)
+        return db.session.get(User, int(user_id)) if user_id else None
     except ValueError:
-        return print({'error': 'Invalid user ID'}), 400
-    if(user_id):
-        return db.session.get(User, int(user_id))
-    else:
-        return 0
+        return None
 
 # Create database tables if they don't exist
 with app.app_context():
@@ -64,7 +75,7 @@ def home():
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    resumes = Resume.query.filter_by(user_id=current_user.id).order_by(Resume.created_at.desc()).all()
+    resumes = Resume.query.filter_by(user_id=current_user.id).order_by(Resume.uploaded_at.desc()).all()
     return render_template('dashboard.html', resumes=resumes)
 
 @app.route('/analyze', methods=['GET', 'POST'])
@@ -76,8 +87,9 @@ def analyze_resume_route():
         region = request.form.get('region', '')
         country = request.form.get('country', '')
 
+        # Validate inputs
         if not resume_file or resume_file.filename == '':
-            flash('No selected file', 'error')
+            flash('No file selected. Please upload a resume.', 'error')
             return redirect(request.url)
 
         if not region or not country:
@@ -85,27 +97,66 @@ def analyze_resume_route():
             return redirect(request.url)
 
         try:
-            # Read file content
-            resume_text = resume_file.read().decode('utf-8')
+            # Determine file extension
+            file_extension = resume_file.filename.split('.')[-1].lower()
+            resume_text = ""
 
-            # Upload to S3
+            if file_extension == 'docx':
+                # Read DOCX file and extract text
+                doc = docx.Document(resume_file)
+                resume_text = "\n".join([para.text for para in doc.paragraphs])
+
+            elif file_extension == 'pdf':
+                # Read PDF file and extract text
+                pdf_reader = PyPDF2.PdfReader(resume_file)
+                resume_text = "\n".join([page.extract_text() for page in pdf_reader.pages if page.extract_text()])
+
+                if not resume_text.strip():  # Handle scanned PDFs
+                    flash("This PDF file may be scanned or non-selectable. Please upload a DOCX instead.", "error")
+                    return redirect(request.url)
+
+            else:
+                flash("Unsupported file type. Please upload a PDF or DOCX file.", "error")
+                return redirect(request.url)
+
+            # Upload file to AWS S3
             s3_path = upload_to_s3(resume_file, current_user.id, region, country)
 
-            # AI Analysis (Updated)
+            if not s3_path:
+                flash("Error uploading file to S3. Please try again.", "error")
+                return redirect(request.url)
+
+            # AI Resume Analysis
             analysis = analyze_resume(resume_text, job_desc)
 
-            # Save to database
-            new_resume = Resume(user_id=current_user.id, s3_path=s3_path, analysis=analysis, created_at=datetime.utcnow())
+            # Save analysis & file metadata to database
+            new_resume = Resume(
+                user_id=current_user.id,
+                s3_path=s3_path,
+                region=region,
+                country=country,
+                analysis=analysis,
+                uploaded_at=datetime.now(timezone.utc)  # Ensure timezone-aware datetime
+            )
             db.session.add(new_resume)
             db.session.commit()
 
+            flash("Resume successfully uploaded and analyzed!", "success")
             return render_template('resume/analysis.html', analysis=analysis)
 
         except Exception as e:
+            db.session.rollback()  # Rollback transaction in case of an error
             flash(f'Error processing file: {str(e)}', 'error')
             return redirect(url_for('analyze_resume_route'))
 
     return render_template('resume/analyze.html')
+
+@app.route('/history')
+@login_required
+def user_history():
+    # Get user's uploaded resumes
+    resumes = Resume.query.filter_by(user_id=current_user.id).order_by(Resume.uploaded_at.desc()).all()
+    return render_template('resume/history.html', resumes=resumes)
 
 @app.route('/forgot-password', methods=['GET', 'POST'])
 def forgot_password():
@@ -218,6 +269,24 @@ def register():
         return render_template('auth/confirm.html')
     
     return render_template('auth/register.html')
+
+@app.route('/resume/<int:resume_id>')
+@login_required
+def view_resume(resume_id):
+    """Generate a temporary S3 pre-signed URL for viewing the resume"""
+    resume = Resume.query.get_or_404(resume_id)
+
+    # Generate pre-signed URL for the stored S3 file key
+    presigned_url = generate_presigned_url(resume.s3_path)
+
+    if presigned_url:
+        logging.info(f"Redirecting to pre-signed URL: {presigned_url}")
+        return redirect(presigned_url)
+    else:
+        logging.error("Error generating pre-signed URL.")
+        flash("Error generating pre-signed URL.", "error")
+        return redirect(url_for("user_history"))
+
 
 @app.route('/logout')
 @login_required

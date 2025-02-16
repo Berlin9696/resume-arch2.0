@@ -270,3 +270,44 @@
     font-size: 16px;
     resize: none;
   }
+
+  
+  /* Styles specifically for the History Page */
+.history-page .container {
+  width: 80%;
+  margin: auto;
+  padding: 20px;
+}
+
+.history-page table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.history-page th, .history-page td {
+  padding: 12px;
+  border: 1px solid #ddd;
+  text-align: left;
+}
+
+.history-page th {
+  background-color: #f4f4f4;
+}
+
+.history-page .analysis {
+  white-space: pre-wrap; /* Ensures text wraps properly */
+  word-wrap: break-word;
+  max-width: 600px; /* Adjust as needed */
+}
+
+.history-page .view-btn {
+  background-color: #007bff;
+  color: white;
+  padding: 5px 10px;
+  text-decoration: none;
+  border-radius: 5px;
+}
+
+.history-page .view-btn:hover {
+  background-color: #0056b3;
+}
