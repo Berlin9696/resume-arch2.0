@@ -188,7 +188,7 @@ def reset_password(token):
         user = User.query.filter_by(email=email).first()
 
         if user:
-            user.password = new_password
+            user.set_password(new_password)  # Hash new password
             db.session.commit()
             flash('Password reset successful. Please log in.', 'success')
             return redirect(url_for('login'))
@@ -225,50 +225,41 @@ def login():
     if request.method == 'POST':
         email = request.form.get('email')
         password = request.form.get('password')
-        user = User.query.filter_by(email=email).first()
-        
-        if user and user.password == password:
-            login_user(user)
-            return redirect(url_for('dashboard'))
-        
-        flash('Invalid email or password', 'error')
-    return render_template('auth/login.html')
 
-@app.route('/inactive')
-def inactive():
-    return render_template('auth/inactive.html')  # Ensure correct path within 'templates/'
+        user = User.query.filter_by(email=email).first()
+
+        if user and user.check_password(password):  # Verify password hash
+            login_user(user)
+            flash('Login successful!', 'success')
+            return redirect(url_for('dashboard'))
+
+        flash('Invalid email or password', 'error')
+
+    return render_template('auth/login.html')
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
         email = request.form.get('email')
         password = request.form.get('password')
-        
+
         if User.query.filter_by(email=email).first():
             flash('Email already exists', 'error')
             return redirect(url_for('register'))
-        
-        new_user = User(email=email, password=password)
+
+        # Create new user and hash password
+        new_user = User(email=email)
+        new_user.set_password(password)  # Hash the password
+
+        # Save to database
         db.session.add(new_user)
         db.session.commit()
-        token = generate_timed_token(new_user.email)
-        print("token success")
-        confirm_url = url_for("home", token=token, _external=True)
-        print("confirm_url success")
-        html = render_template("auth/confirm.html", confirm_url=confirm_url)
-        print("html success")
-        subject = "Please confirm your email"
-        send_email(new_user.email, subject, html)
-        print("email success")
-        login_user(new_user)
 
-        flash("A confirmation email has been sent via email.", "success")
-        return redirect(url_for('inactive'))
-        
-        ##flash('Registration successful! Please login', 'success')
-        return render_template('auth/confirm.html')
-    
+        flash('Registration successful! Please log in.', 'success')
+        return redirect(url_for('login'))
+
     return render_template('auth/register.html')
+
 
 @app.route('/resume/<int:resume_id>')
 @login_required
