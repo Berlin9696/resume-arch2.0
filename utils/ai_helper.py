@@ -145,3 +145,26 @@ def evaluate_star_response(answer):
     except Exception as e:
         logging.error(f"Error evaluating answer: {e}")
         return "Error evaluating answer"
+
+
+def generate_resume(user_answer):
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o", 
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are a resume generation assistant. Based on the user's answer, generate a professional resume."
+                },
+                {
+                    "role": "user",
+                    "content": f"USER'S INPUT: {user_answer}"
+                }
+            ],
+            temperature=0.7
+        )
+        return response.choices[0].message.content.strip()  # Ensure response is clean
+
+    except Exception as e:
+        print("Error in generate_resume:", str(e))  # Debugging log
+        return f"Error generating resume: {str(e)}"

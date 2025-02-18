@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <h1>Resume Generator</h1>
+    
+    <!-- Form for user input -->
+    <form id="resumeForm">
+        <label for="promptAnswer">Describe your skills, education, experience, and background:</label><br>
+        <textarea id="promptAnswer" name="promptAnswer" rows="5" required></textarea><br>
+
+        <button type="submit">Submit</button>
+    </form>
+    
+    <br>
+
+    <!-- Section to display generated resume -->
+    <h1>Output:</h1>
+    <div id="generatedResume" contenteditable="true" style="border:1px solid #ccc; padding:10px; min-height:200px;"> 
+        <!-- The generated resume will be inserted here -->
+         <h2>Your generated resume will appear here</h2>
+    </div>
+
+    <button id="exportButton">Export as Word</button>
+
+    <script>
+        document.getElementById('resumeForm').addEventListener('submit', function(event) {
+            event.preventDefault();  // Prevent the form from submitting normally
+
+            let promptAnswer = document.getElementById('promptAnswer').value;
+            let existingResume = document.getElementById('generatedResume').innerText;
+
+            // Check if the input field is empty
+            if (!promptAnswer.trim()) {
+                alert('Please provide an answer.');
+                return;
+            }
+
+            // Send the user input and existing resume to the server (Flask backend)
+            fetch('/generate_resume', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ answer: promptAnswer, existing_resume: existingResume })  // Send both inputs as JSON
+            })
+            .then(response => response.json())  // Parse the JSON response
+            .then(data => {
+                // Update the existing resume instead of replacing it
+                if (data.resume) {
+                    document.getElementById('generatedResume').innerText = data.resume;
+                } else {
+                    document.getElementById('generatedResume').innerHTML = `
+                        <h2>Error:</h2>
+                        <p>${data.error}</p>
+                    `;
+                }
+            })
+            .catch(error => {
+                // Handle any errors from the fetch request
+                console.error('Error:', error);
+                document.getElementById('generatedResume').innerHTML = `
+                    <h2>Something went wrong!</h2>
+                    <p>${error.message}</p>
+                `;
+            });
+        });
+
+        document.getElementById("exportButton").addEventListener("click", function () {
+            const resumeText = document.getElementById("generatedResume").innerText;
+
+            fetch("/export_resume", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ resume: resumeText }),
+            })
+            .then(response => response.blob())
+            .then(blob => {
+                const link = document.createElement("a");
+                link.href = URL.createObjectURL(blob);
+                link.download = "resume.docx";
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            })
+            .catch(error => console.error("Error exporting resume:", error));
+        });
+    </script>
+{% endblock %}

@@ -1,21 +1,23 @@
 # Standard Library Imports
-import os
+import os, io
 from datetime import datetime, timezone
 
 # Flask & Extensions
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, send_file
 from flask_sqlalchemy import SQLAlchemy
 #from flask_migrate import Migrate
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from flask_mail import Mail
 from dotenv import load_dotenv
+from docx import Document
+from docx.shared import Pt, RGBColor
 
 # Models (Database Tables)
 from models import db, User, Resume
 
 # Utility Functions
 from utils.s3_helper import upload_to_s3, generate_presigned_url
-from utils.ai_helper import analyze_resume, generate_interview_question, evaluate_star_response
+from utils.ai_helper import analyze_resume, generate_interview_question, evaluate_star_response, generate_resume
 from email_sender import send_email
 from token_utils import generate_timed_token, confirm_timed_token
 
@@ -68,6 +70,12 @@ with app.app_context():
     db.create_all()
 
 # Routes
+
+# Nav-Bar
+@app.route('/editor')
+def editor():
+    return render_template('editor.html')
+
 @app.route('/')
 def home():
     return render_template('index.html')
@@ -277,6 +285,53 @@ def view_resume(resume_id):
         logging.error("Error generating pre-signed URL.")
         flash("Error generating pre-signed URL.", "error")
         return redirect(url_for("user_history"))
+    
+@app.route('/generate_resume', methods=['POST'])
+def generate_resume_route():
+    try:
+        # Ensure the data is being received correctly
+        user_answer = request.json.get('answer')
+        existing_resume = request.json.get('existing_resume', '')  # Get existing resume content
+        
+        if not user_answer:
+            return jsonify({'error': 'No input provided'}), 400
+        
+        # Merge existing resume with new input
+        combined_input = existing_resume + "\n" + user_answer if existing_resume else user_answer
+        
+        # Call the AI function to update the resume
+        updated_resume = generate_resume(combined_input)
+        
+        return jsonify({'resume': updated_resume})
+    
+    except Exception as e:
+        print("Error generating resume:", str(e))  # Debugging log
+        return jsonify({'error': str(e)}), 400
+
+@app.route('/export_resume', methods=['POST'])
+def export_resume():
+    try:
+        # Get the resume text from the request
+        resume_text = request.json.get('resume')
+        
+        if not resume_text:
+            return jsonify({'error': 'No resume text provided'}), 400
+        
+         # Create a Word document
+        doc = Document()
+        doc.add_heading('Generated Resume', level=1)
+        doc.add_paragraph(resume_text)
+
+        # Save the document in memory
+        file_stream = io.BytesIO()
+        doc.save(file_stream)
+        file_stream.seek(0)
+
+        # Return the file for download
+        return send_file(file_stream, as_attachment=True, download_name="resume.docx", mimetype='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
 
 
 @app.route('/logout')
