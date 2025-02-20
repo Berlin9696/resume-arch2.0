@@ -17,7 +17,7 @@ from models import db, User, Resume
 
 # Utility Functions
 from utils.s3_helper import upload_to_s3, generate_presigned_url
-from utils.ai_helper import analyze_resume, generate_interview_question, evaluate_star_response, generate_resume
+from utils.ai_helper import analyze_resume, generate_interview_question, evaluate_star_response, generate_resume, fine_tuner
 from email_sender import send_email
 from token_utils import generate_timed_token, confirm_timed_token
 
@@ -25,6 +25,7 @@ from token_utils import generate_timed_token, confirm_timed_token
 import docx
 import PyPDF2
 import logging
+
 
 # Load environment variables
 load_dotenv()
@@ -148,7 +149,7 @@ def analyze_resume_route():
             )
             db.session.add(new_resume)
             db.session.commit()
-
+            fine_tuner(resume_text, job_desc)
             flash("Resume successfully uploaded and analyzed!", "success")
             return render_template('resume/analysis.html', analysis=analysis)
 
@@ -328,7 +329,7 @@ def export_resume():
         file_stream.seek(0)
 
         # Return the file for download
-        return send_file(file_stream, as_attachment=True, download_name="resume.docx", mimetype='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+        return send_file(file_stream, as_attachment=True, download_name="resume.docx", mimetype='application/vnd.openxmlformats-officedocument.wordprocessingml.document
 
     except Exception as e:
         return jsonify({'error': str(e)}), 400
