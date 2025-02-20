@@ -4,7 +4,9 @@ import numpy as np
 from openai import OpenAI
 from dotenv import load_dotenv
 from langdetect import detect  # Language detection for better response formatting
-
+import tempfile
+import json
+import openai
 # Load environment variables
 load_dotenv()
 
@@ -93,6 +95,39 @@ def analyze_resume(resume_text, job_description):
         logging.error(f"Error analyzing resume: {e}")
         return "Error analyzing resume"
 
+def fine_tuner(resume_text, job_description):
+    try:
+        resume_lang = detect(resume_text)
+        job_desc_lang = detect(job_description)
+        target_language = resume_lang if resume_lang == job_desc_lang else "en"
+        # Compute match percentage
+        match_percentage = calculate_match_percentage(resume_text, job_description)
+        training_sample = {
+            "prompt": f"RESUME:\n{resume_text}\n\nJOB DESCRIPTION:\n{job_description}\n\nAnalysis:",
+            "completion": (
+                f"You are an expert resume analyzer. Analyze the given resume and job description. "
+                f"Ensure your response is in {target_language}. Provide:\n"
+                f"1. Match percentage: {match_percentage}%\n"
+                f"2. 3 Key strengths\n"
+                f"3. 3 Improvement suggestions\n"
+                f"4. Missing keywords"
+            )
+        }
+
+
+        with tempfile.NamedTemporaryFile(mode='w+', delete=False, suffix=".jsonl") as tmp:
+            tmp.write(json.dumps(training_sample) + "\n")
+            tmp.flush()
+            tmp_path = tmp.name
+        client = OpenAI()
+        tuning_file = client.files.create(
+            file=open(tmp_path, "rb"),
+            purpose="fine-tune"
+        )
+        job = client.fine_tuning.jobs.create(training_file=tuning_file.id, model="gpt-4o-2024-08-06")
+    except Exception as e:
+        logging.error(f"Error fine-tuning: {e}")
+        
 def generate_interview_question(industry="Technology", experience_level="Mid-Level"):
     """
     Generate a behavioral interview question based on the STAR method.
