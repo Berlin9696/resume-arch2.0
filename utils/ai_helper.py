@@ -6,7 +6,6 @@ from dotenv import load_dotenv
 from langdetect import detect  # Language detection for better response formatting
 import tempfile
 import json
-import openai
 # Load environment variables
 load_dotenv()
 

@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 # Flask & Extensions
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, send_file
 from flask_sqlalchemy import SQLAlchemy
-#from flask_migrate import Migrate
+from flask_migrate import Migrate
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from flask_mail import Mail
 from dotenv import load_dotenv
@@ -16,7 +16,7 @@ from docx.shared import Pt, RGBColor
 from models import db, User, Resume
 
 # Utility Functions
-from utils.s3_helper import upload_to_s3, generate_presigned_url
+from utils.s3_helper import upload_to_s3, generate_presigned_url, delete_from_s3
 from utils.ai_helper import analyze_resume, generate_interview_question, evaluate_star_response, generate_resume, fine_tuner
 from email_sender import send_email
 from token_utils import generate_timed_token, confirm_timed_token
@@ -53,7 +53,7 @@ app.debug = True
 
 # Initialize database & Flask extensions
 db.init_app(app)
-#migrate = Migrate(app, db)  # Initialize Flask-Migrate
+migrate = Migrate(app, db)  # Initialize Flask-Migrate
 mail = Mail(app)  # Initialize Flask-Mail
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'  # Redirect to login if user isn't authenticated
@@ -166,6 +166,24 @@ def user_history():
     # Get user's uploaded resumes
     resumes = Resume.query.filter_by(user_id=current_user.id).order_by(Resume.uploaded_at.desc()).all()
     return render_template('resume/history.html', resumes=resumes)
+
+@app.route('/delete_resume/<int:resume_id>', methods=['POST'])
+@login_required
+def delete_resume(resume_id):
+    """Deletes a resume from the database and S3"""
+    resume = Resume.query.filter_by(id=resume_id, user_id=current_user.id).first()
+
+    if not resume:
+        return jsonify({'error': 'Resume not found or unauthorized'}), 404
+
+    # Delete file from S3
+    if delete_from_s3(resume.s3_path):
+        # Remove resume from database
+        db.session.delete(resume)
+        db.session.commit()
+        return jsonify({'success': 'Resume deleted successfully'}), 200
+    else:
+        return jsonify({'error': 'Failed to delete resume from S3'}), 500
 
 @app.route('/forgot-password', methods=['GET', 'POST'])
 def forgot_password():
@@ -329,7 +347,7 @@ def export_resume():
         file_stream.seek(0)
 
         # Return the file for download
-        return send_file(file_stream, as_attachment=True, download_name="resume.docx", mimetype='application/vnd.openxmlformats-officedocument.wordprocessingml.document
+        return send_file(file_stream, as_attachment=True, download_name="resume.docx", mimetype='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
 
     except Exception as e:
         return jsonify({'error': str(e)}), 400

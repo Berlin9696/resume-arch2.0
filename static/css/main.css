@@ -311,3 +311,18 @@
 .history-page .view-btn:hover {
   background-color: #0056b3;
 }
+
+.history-page .delete-btn {
+  background-color: #dc3545;
+  color: white;
+  padding: 5px 10px;
+  text-decoration: none;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.history-page .delete-btn:hover {
+  background-color: #a71d2a; 
+}
