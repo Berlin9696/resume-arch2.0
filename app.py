@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 # Flask & Extensions
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, send_file
 from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
+#from flask_migrate import Migrate
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from flask_mail import Mail
 from dotenv import load_dotenv
@@ -53,7 +53,7 @@ app.debug = True
 
 # Initialize database & Flask extensions
 db.init_app(app)
-migrate = Migrate(app, db)  # Initialize Flask-Migrate
+#migrate = Migrate(app, db)  # Initialize Flask-Migrate
 mail = Mail(app)  # Initialize Flask-Mail
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'  # Redirect to login if user isn't authenticated
@@ -370,4 +370,4 @@ def internal_server_error(e):
 
 # Run Flask app
 if __name__ == '__main__':
-    app.run(debug=False)
+    app.run(debug=True)
