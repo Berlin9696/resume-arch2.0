@@ -1,54 +1,77 @@
+/* ================= Layout Container ================= */
+.layout-container {
+  display: flex;
+  align-items: flex-start; /* Align items at the top */
+  min-height: 100vh;       /* Fill full viewport height */
+  width: 100%;
+}
+
+/* Sidebar: fixed width from design, no fixed height so content determines height */
+.sidebar {
+  width: 280px;
+  flex-shrink: 0;
+  margin-right: 20px; /* Gap between sidebar and main content */
+  /* Remove any fixed height (e.g., height: 920px;) to prevent unwanted shrinking */
+}
+
+/* Main content takes remaining space */
+.main-content {
+  flex: 1;
+  width: 100%;
+}
+
+/* ================= Animation ================= */
 @keyframes fade {
-    from {opacity: .4} 
-    to {opacity: 1}
-  }
-  
-  /*Navigation bar styling*/
-  ul {
-      list-style-type: none;
-      margin: 0;
-      padding: 0;
-      overflow: hidden;
-      background-color: #148bcf;
-    }
+    from { opacity: .4; } 
+    to { opacity: 1; }
+}
+
+/* ================= Old Navigation Bar Styles (Disabled) ================= */
+/*
+ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: #148bcf;
+}
     
-    li a {
-      display: block;
-    }
+li a {
+    display: block;
+}
     
-    li a:hover {
-      background-color: #13b5d1;
-    }
+li a:hover {
+    background-color: #13b5d1;
+}
   
-  /* Navigation bar styling */
-  .nav-bar {
+.nav-bar {
     display: flex;
-    flex-wrap: wrap; /* Allows wrapping of child elements if necessary */
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    overflow: visible; /* Ensure no content is cut off */
-  }
+    overflow: visible;
+}
   
-  .nav-menu {
+.nav-menu {
     display: flex;
-    flex-wrap: nowrap; /* Ensures the menu items are in a row */
-    gap: 10px; /* Adds spacing between items */
-  }
+    flex-wrap: nowrap;
+    gap: 10px;
+}
   
-  .nav-menu li {
+.nav-menu li {
     display: block;
-  }
+}
   
-  .hamburger {
-    display: none; /* Initially hidden */
+.hamburger {
+    display: none;
     color: white;
     font-size: 40px;
     padding: 30px 30px;
     height: 100px;
     line-height: 60px;
-  }
+}
   
-  .nav-bar li a {
+.nav-bar li a {
     color: white;
     text-align: center;
     text-decoration: none;
@@ -56,151 +79,372 @@
     padding: 30px 30px;
     height: 120px;
     line-height: 60px;
-  }
+}
   
-  .nav-bar li a:hover {
+.nav-bar li a:hover {
     background-color: #13b5d1;
-  }
+}
   
-  /* Unique styling for "Resume Architect" */
-  .nav-bar .nav-title {
-    font-size: 70px; /* desired size */
-  }
+.nav-bar .nav-title {
+    font-size: 70px;
+}
   
-  
-  /* Responsive styles */
-  @media screen and (max-width: 1100px) {
+@media screen and (max-width: 1100px) {
     .nav-menu {
-        display: none; /* Hide the menu by default */
-        flex-direction: column; /* Stack items vertically */
-        position: absolute; /* Position it as a dropdown */
-        top: 100px; /* Place it below the header */
+        display: none;
+        flex-direction: column;
+        position: absolute;
+        top: 100px;
         right: 0;
         background-color: #148bcf;
-        width: 100%; /* Full-width for dropdown */
+        width: 100%;
         z-index: 1000;
     }
   
     .nav-menu.open {
-        display: flex; /* Show the menu when toggled */
+        display: flex;
     }
   
     .hamburger {
-        display: block; /* Show the hamburger icon */
+        display: block;
     }
-  }
-  
-  
-  
-  
-  
-  /************************************************/
-  
-  /* Headers */
-  h1 {
-      padding-top: 5px;
-      font-family: 'Californian FB';
-      font-size: 45px;
-  }
-  
-  h2 {
-      padding-top: 5px;
-      font-family: "Californian FB";
-      font-size: 30px;
-  }
-  
-  
-  h3 {
-      text-indent: 10px;
-      font-family: "Californian FB";
-      font-size: 20px;
-  }
-  
-  h4 {
-      text-indent: 10px;
-      font-family: "Californian FB";
-      font-size: 20px;
-  }
-  
-  h5 {
-      text-indent: 10px;
-      font-family: "Californian FB";
-      font-size: 15px;
-  }
-  /************************************************/
-  
-  main {
-      background-color: white;
-      padding: 45px;
-      padding-bottom: 40px;
-  }
-  
-  /* Shared button styling */
-  .styled-button {
-      display: inline-block;
-      padding: 30px 50px;
-      font-size: 16px;
-      color: white;
-      background-color: #007bff;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      text-align: center;
-      text-decoration: none;
-          }
-  /* Hover effect for buttons */
-      .styled-button:hover {
-          background-color: #0056b3;
-      }
-  
-  /* Hide the actual file input */
-      #fileUpload {
-          display: none;
-      }
-  
-      
-      
-  /* Slideshow **************************************************************************/
-  body {font-family: Verdana, sans-serif; margin:0}
-  .mySlides {display: none}
-  img {vertical-align: middle;}
-  
-  /* Slideshow container */
-  .slideshow-container {
-      position: relative; /* Ensure arrows are positioned relative to the slideshow */
-      width: 60%; /* Adjust this percentage to fit your design */
-  }
-  
-  /* Next & previous buttons */
-  .prev, .next {
-      position: absolute;
-      top: 50%; /* Vertically center the arrows */
-      transform: translateY(-50%); /* Offset by half of their height for perfect centering */
-      font-size: 30px; /* Adjust arrow size */
-      color: white; /* Make arrows white for visibility */
-      background-color: rgba(0, 0, 0, 0.5); /* Optional: adds a background to the arrows */
-      padding: 10px;
-      cursor: pointer;
-      user-select: none;
-      z-index: 1; /* Ensures arrows are above the images */
-  }
-  
-  .prev {
-      left: -40px; /* Position the "prev" arrow to the left */
-  }
-  
-  /* Position the "next button" to the right */
-  .next {
-      right: -40px; /* Position the "next" arrow to the right */
-  }
-  
-  /* On hover, add a black background color with a little bit see-through */
-  .prev:hover, .next:hover {
-    background-color: rgba(0,0,0,0.8);
-  }
-  
-  /* Caption text */
-  .text {
+}
+*/
+
+/* ================= New Sidebar (Navigation) Styles from Figma ================= */
+.sidebar, 
+.sidebar * {
+    box-sizing: border-box;
+}
+
+.sidebar {
+    background: var(--color-background, #ffffff);
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    align-items: center;
+    justify-content: flex-start;
+    box-shadow: 0px 16px 44px 0px rgba(0, 0, 0, 0.07);
+}
+
+/* Sidebar navigation hover effect */
+.nav-item-1:hover,
+.nav-item-2:hover,
+.nav-item-3:hover,
+.nav-item-4:hover,
+.nav-item-5:hover,
+.nav-item-6:hover,
+.nav-item-7:hover,
+.nav-item-8:hover {
+    background-color: #80b0e4;  /* Blue color on hover */
+    transition: background-color 0.3s ease;
+    color: #007bff;  /* Desired hover text color */
+    cursor: pointer;
+}
+.top {
+    padding: var(--padding-navbar, 24px);
+    display: flex;
+    flex-direction: row;
+    gap: 12px;
+    align-items: center;
+    justify-content: flex-start;
+    width: 100%;
+}
+
+.logo {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    align-items: center;
+    justify-content: flex-start;
+    overflow: hidden;
+}
+
+.abc-solutions {
+    color: var(--color-text-primary, #081021);
+    text-align: left;
+    font-family: var(--xl-semibold-font-family, 'Poppins-SemiBold', sans-serif);
+    font-size: var(--xl-semibold-font-size, 20px);
+    line-height: var(--xl-semibold-line-height, 140%);
+    font-weight: var(--xl-semibold-font-weight, 600);
+}
+
+.main {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    align-items: center;
+    justify-content: flex-start;
+    width: 100%;
+    flex: 1;
+}
+
+.nav {
+    padding: 0 var(--padding-navbar, 24px);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-items: flex-start;
+    width: 100%;
+}
+
+.nav-item-1,
+.nav-item-2,
+.nav-item-3,
+.nav-item-4,
+.nav-item-5,
+.nav-item-6,
+.nav-item-7,
+.nav-item-8 {
+    border-radius: 99px;
+    padding: 12px 16px;
+    display: flex;
+    flex-direction: row;
+    gap: 12px;
+    align-items: center;
+    width: 100%;
+    flex-shrink: 0;
+    height: 44px;
+    overflow: hidden;
+    position: relative;
+}
+
+.inner {
+    display: flex;
+    flex-direction: row;
+    gap: 12px;
+    align-items: center;
+    flex: 1;
+}
+
+.icon {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.icon2, .icon3, .icon4, .icon5, .icon6, .icon7, .icon8, .icon9 {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+}
+
+.label {
+    color: var(--color-text-nav-item-active, #64748b);
+    text-align: left;
+    font-family: var(--base-medium-font-family, 'Poppins-Medium', sans-serif);
+    font-size: var(--base-medium-font-size, 14px);
+    line-height: var(--base-medium-line-height, 20px);
+    font-weight: var(--base-medium-font-weight, 500);
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.label2 {
+    color: var(--color-text-secondary, #64748b);
+    text-align: left;
+    font-family: var(--base-medium-font-family, 'Poppins-Medium', sans-serif);
+    font-size: var(--base-medium-font-size, 14px);
+    line-height: var(--base-medium-line-height, 20px);
+    font-weight: var(--base-medium-font-weight, 500);
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+/* Additional Navigation Items */
+
+/* Upgrade/Authentication Button */
+.upgrade-hero {
+    padding: 0 var(--padding-navbar, 24px);
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+
+.upgrade {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+    flex: 1;
+    height: 221px;
+}
+
+.button {
+    background: var(--color-primary, #4f46e5);
+    border-radius: 99px;
+    padding: 12px 24px;
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+
+.label3 {
+    color: #ffffff;
+    text-align: center;
+    font-family: var(--sm-medium-font-family, 'Poppins-Medium', sans-serif);
+    font-size: var(--sm-medium-font-size, 12px);
+    line-height: var(--sm-medium-line-height, 20px);
+    font-weight: var(--sm-medium-font-weight, 500);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Footer */
+.footer {
+    border-top: 1px solid var(--color-border, #e2e8f0);
+    padding: var(--padding-navbar, 24px);
+    display: flex;
+    flex-direction: row;
+    gap: 12px;
+    align-items: center;
+    width: 100%;
+}
+
+.inner2 {
+    display: flex;
+    flex-direction: row;
+    gap: 12px;
+    align-items: center;
+    flex: 1;
+}
+
+.text-group {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+}
+
+.caret {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+}
+
+.logo-footer {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    align-items: center;
+    justify-content: flex-start;
+    overflow: hidden;
+}
+
+/* Logo image styling */
+.logo img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+/* ================= Other Existing Website CSS ================= */
+
+/* Headers */
+h1 {
+    padding-top: 5px;
+    font-family: 'Californian FB';
+    font-size: 45px;
+}
+
+h2 {
+    padding-top: 5px;
+    font-family: "Californian FB";
+    font-size: 30px;
+}
+
+h3 {
+    text-indent: 10px;
+    font-family: "Californian FB";
+    font-size: 20px;
+}
+
+h4 {
+    text-indent: 10px;
+    font-family: "Californian FB";
+    font-size: 20px;
+}
+
+h5 {
+    text-indent: 10px;
+    font-family: "Californian FB";
+    font-size: 15px;
+}
+
+/* Main content styling */
+main {
+    background-color: white;
+    padding: 45px;
+    padding-bottom: 40px;
+}
+
+/* Shared button styling */
+.styled-button {
+    display: inline-block;
+    padding: 30px 50px;
+    font-size: 16px;
+    color: white;
+    background-color: #007bff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+}
+
+.styled-button:hover {
+    background-color: #0056b3;
+}
+
+/* Hide the actual file input */
+#fileUpload {
+    display: none;
+}
+
+/* ================= Slideshow Styles ================= */
+body {
+    font-family: Verdana, sans-serif;
+    margin: 0;
+}
+
+.slideshow-container {
+    position: relative;
+    width: 60%;
+    margin: auto;
+    overflow: hidden;
+}
+
+/* Initially hide all slides */
+.mySlides {
+    display: none;
+}
+
+/* Ensure images fill the slide */
+img {
+    vertical-align: middle;
+    width: 100%;
+}
+
+/* Hide navigation buttons since the slideshow is automatic */
+.prev, .next {
+    display: none;
+}
+
+/* Caption text styling */
+.text {
     color: #f2f2f2;
     font-size: 15px;
     padding: 8px 12px;
@@ -208,57 +452,44 @@
     bottom: 8px;
     width: 100%;
     text-align: center;
-  }
-  
-  /* Number text (1/3 etc) */
-  .numbertext {
-    color: #000000;
-    font-size: 12px;
-    padding: 8px 12px;
-    position: absolute;
-  }
-  
-  /* The dots/bullets/indicators */
-  .dot {
-    cursor: pointer;
-    height: 15px;
-    width: 15px;
-    margin: 0 2px;
-    background-color: #bbb;
-    border-radius: 50%;
-    display: inline-block;
-    transition: background-color 0.6s ease;
-  }
-  
-  .active, .dot:hover {
-    background-color: #717171;
-  }
-  
-  /* Fading animation */
-  .fade {
+}
+
+/* Number text styling */
+.numbertext {
+    display: none;
+}
+
+/* Optional fade animation (applied if you add the "fade" class in your HTML) */
+.fade {
     animation-name: fade;
     animation-duration: 1.5s;
-  }
-  
-  .main-container {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 10px; /* Adds space between slideshow and buttons */
-      max-width: 900px; /* Limit the max width of the container */
-      margin: 0 auto; /* Center the container horizontally */
-  }
-  
-  .buttons-container {
-      width: 30%; /* Adjust this percentage to fit your design */
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-  }
-  
-  /* Input box */
-  textarea {
+}
+
+@keyframes fade {
+    from {opacity: 0.4} 
+    to {opacity: 1}
+}
+
+/* Additional container styling */
+.main-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.buttons-container {
+    width: 30%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+/* Input box styling */
+textarea {
     width: 100%;
     height: 150px;
     padding: 12px 20px;
@@ -269,10 +500,10 @@
     background-color: #f8f8f8;
     font-size: 16px;
     resize: none;
-  }
+}
 
-  
-  /* Styles specifically for the History Page */
+
+/* ================= History Page Styles ================= */
 .history-page .container {
   width: 80%;
   margin: auto;
@@ -295,9 +526,9 @@
 }
 
 .history-page .analysis {
-  white-space: pre-wrap; /* Ensures text wraps properly */
+  white-space: pre-wrap;
   word-wrap: break-word;
-  max-width: 600px; /* Adjust as needed */
+  max-width: 600px;
 }
 
 .history-page .view-btn {
@@ -324,5 +555,96 @@
 }
 
 .history-page .delete-btn:hover {
-  background-color: #a71d2a; 
+  background-color: #a71d2a;
 }
+
+/* --------- Login Page Specific Styles --------- */
+
+/* Center the entire layout container */
+body.login-page .layout-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh; /* Full viewport height */
+  }
+  
+  /* Hide the sidebar on the login page */
+  body.login-page .sidebar {
+    display: none;
+  }
+  
+  /* Style and center the main content container */
+  body.login-page .main-content {
+    margin: 0 auto;
+    width: 100%;
+    max-width: 600px;  /* Increased width for a more spacious layout */
+    padding: 2rem;
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Flash message styling */
+  .flash-message {
+    padding: 1rem;
+    margin-bottom: 1rem;
+    color: #fff;
+    background-color: #e3342f; /* Red background */
+    border-radius: 4px;
+  }
+  
+  /* Login form styling */
+  .login-form {
+    margin-top: 1rem;
+  }
+  
+  .form-group {
+    margin-bottom: 1rem;
+  }
+  
+  .form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #333;
+  }
+  
+  .form-group input {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  
+  /* Login button styling */
+  .login-button {
+    width: 100%;
+    padding: 0.75rem;
+    border: none;
+    border-radius: 4px;
+    background-color: #007bff;
+    color: #fff;
+    font-size: 1rem;
+    cursor: pointer;
+    margin-top: 1rem;
+  }
+  
+  .login-button:hover {
+    background-color: #0069d9;
+  }
+  
+  /* Text centering for links */
+  .text-center {
+    text-align: center;
+    margin-top: 1rem;
+  }
+  
+  .text-center a {
+    color: #007bff;
+    text-decoration: none;
+  }
+  
+  .text-center a:hover {
+    text-decoration: underline;
+  }
+  
+  

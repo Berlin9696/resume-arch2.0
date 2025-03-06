@@ -1,39 +1,43 @@
 {% extends "base.html" %}
+{% block body_class %}login-page{% endblock %}
 {% block content %}
-<div class="max-w-md mx-auto mt-10">
-    <h2 class="text-2xl font-bold mb-6">Login</h2>
+<div class="layout-container">
+  <div class="sidebar">
+    <!-- Sidebar content (hidden on the login page) -->
+  </div>
+  <div class="main-content">
+    <h2>Login</h2>
     
     <!-- Flash Messages -->
     {% with messages = get_flashed_messages(with_categories=True) %}
-        {% if messages %}
-            {% for category, message in messages %}
-                <div class="p-4 mb-4 text-white bg-red-500 rounded">
-                    {{ message }}
-                </div>
-            {% endfor %}
-        {% endif %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="flash-message">
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
     {% endwith %}
 
-    <form method="POST" class="bg-white p-6 rounded-lg shadow-md">
-        {{ csrf_token }}  <!-- CSRF Protection -->
-        <div class="mb-4">
-            <label class="block text-gray-700">Email</label>
-            <input type="email" name="email" required class="w-full px-3 py-2 border rounded">
-        </div>
-        <div class="mb-4">
-            <label class="block text-gray-700">Password</label>
-            <input type="password" name="password" required class="w-full px-3 py-2 border rounded">
-        </div>
-        <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 w-full">
-            Login
-        </button>
+    <form method="POST" class="login-form">
+      {{ csrf_token }}  <!-- CSRF Protection -->
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" name="email" required>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" name="password" required>
+      </div>
+      <button type="submit" class="login-button">Login</button>
     </form>
     
-    <p class="mt-4 text-center">
-        Don't have an account? <a href="{{ url_for('register') }}" class="text-blue-500">Register</a>
+    <p class="text-center">
+      Don't have an account? <a href="{{ url_for('register') }}">Register</a>
     </p>
-    <p class="mt-2 text-center">
-        <a href="{{ url_for('forgot_password') }}" class="text-red-500">Forgot Password?</a>
+    <p class="text-center">
+      <a href="{{ url_for('forgot_password') }}">Forgot Password?</a>
     </p>
+  </div>
 </div>
 {% endblock %}
