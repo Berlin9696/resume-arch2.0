@@ -1,6 +1,9 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="max-w-4xl mx-auto py-8">
+<!-- Outer container for analyzing page, away from sidebar and near top -->
+<div class="analyze-page-wrapper">
+  <!-- Your original container & content remain unchanged -->
+  <div class="max-w-4xl mx-auto py-8">
     <h1 class="text-2xl font-bold mb-6">Analyze Resume</h1>
 
     <!-- Flash Messages for Success & Errors -->
@@ -53,6 +56,7 @@
             View Upload History
         </a>
     </p>
+  </div>
 </div>
 
 <script>

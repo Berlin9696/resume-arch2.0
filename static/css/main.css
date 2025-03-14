@@ -647,4 +647,168 @@ body.login-page .layout-container {
     text-decoration: underline;
   }
   
+  /* ================= Dashboard Container ================= */
+/* Fills the screen and centers content near the top */
+.dashboard-container {
+    width: 100%;
+    min-height: 100vh;       /* Full viewport height */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 2rem;       /* Space from the top (adjust as needed) */
+    box-sizing: border-box;
+  }
+  
+  /* Dashboard Title */
+  .dashboard-title {
+    font-size: 2rem;         /* Adjust size as needed (approx. 32px) */
+    font-weight: bold;
+    text-align: center;
+    margin-top: 2rem;        /* Equivalent to Tailwind's mt-8 (2rem) */
+    margin-bottom: 1.5rem;   /* Equivalent to Tailwind's mb-6 (1.5rem) */
+  }
+
+
+
+
+
+
+
+
+
+
+/* ================= Dashboard Container ================= */
+/* Moves content to the right and keeps it near the top */
+.dashboard-container {
+    /* Fill at least the screen’s height */
+    min-height: 100vh;
+    /* Shift to the right to account for the sidebar width */
+    margin-left: 300px;   
+    /* Optionally, you can adjust margin-left further (e.g., 280px) 
+       based on your sidebar's actual width. */
+    
+    /* Some vertical spacing at the top (so it’s closer to the top) */
+    padding-top: 3rem;
+    
+    /* Centers the overall content horizontally in the available space */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-sizing: border-box;
+  }
+  
+  /* Large page heading */
+  .dashboard-title {
+    font-size: 2.5rem;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 1.5rem; /* Slightly less space below title */
+  }
+  
+  /* ================= Two-Column Grid ================= */
+  /* The container that holds the two blocks */
+  .dashboard-grid {
+    display: grid;
+    /* If you want it narrower, you can limit width and center it 
+       using auto margins. Example:
+       max-width: 700px;
+       margin: 0 auto; 
+    */
+    margin-top: 1rem;   /* Less vertical gap from the title */
+    
+    /* Single column by default, two columns on medium+ screens */
+    grid-template-columns: 1fr;
+    gap: 1.5rem;        /* Space between the two blocks */
+    justify-items: center;
+  }
+  
+  /* Two columns at 768px+ */
+  @media (min-width: 768px) {
+    .dashboard-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+  
+  /* ================= Dashboard Block ================= */
+  .dashboard-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;   /* Center content (heading/button) horizontally */
+    justify-content: center;
+    width: 100%;
+    max-width: 350px;      /* Shrink block width for a tighter layout */
+    background: none;      /* No border or background */
+    padding: 1.5rem;       /* Reduced padding for a more compact look */
+    box-sizing: border-box;
+  }
+  
+  .block-heading {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    text-align: center;
+  }
+  
+  /* ================= Buttons ================= */
+  .btn-blue,
+  .btn-green {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    text-decoration: none;
+    border-radius: 0.25rem;
+    color: #ffffff;
+    font-weight: 500;
+    text-align: center;
+    transition: background-color 0.2s ease, opacity 0.2s ease;
+    margin-top: 0.5rem; /* Slight spacing from heading */
+  }
+  
+  /* Hover effect for both */
+  .btn-blue:hover,
+  .btn-green:hover {
+    opacity: 0.9;
+  }
+  
+  .btn-blue {
+    background-color: #3b82f6;
+  }
+  .btn-blue:hover {
+    background-color: #2563eb;
+  }
+  
+  .btn-green {
+    background-color: #10b981;
+  }
+  .btn-green:hover {
+    background-color: #059669;
+  }
+
+  
+
+
+
+
+  .outer-container {
+    min-height: 100vh;
+    /* The line below controls how far the block moves to the right */
+    margin-left: 350px; /* e.g., changed from 280px to 320px */
+    
+    display: flex;
+    align-items: flex-start; /* Align items at the top vertically */
+    justify-content: center; /* Center horizontally in the remaining space */
+    padding-top: 60px;       /* Adds some spacing from the top */
+    box-sizing: border-box;
+  }
+  
+  .analyze-page-wrapper {
+    min-height: 100vh;       /* Fill the vertical space */
+    margin-left: 320px;      /* Shift away from sidebar: adjust if needed (e.g., 300px, 350px) */
+  
+    display: flex;
+    align-items: flex-start; /* Align items at the top rather than center them vertically */
+    justify-content: center; /* Center horizontally in the remaining width */
+  
+    padding-top: 60px;       /* Space from the top, so it's not flush with top */
+    box-sizing: border-box;
+  }
   
